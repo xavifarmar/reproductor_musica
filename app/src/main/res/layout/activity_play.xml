@@ -7,67 +7,110 @@
     android:background="#121212"
     tools:context=".MainActivity">
 
-    <!-- Barra de controles (Play, Pause, etc.) -->
+    <!-- Barra de Controles (Play, Pause, etc.) -->
     <LinearLayout
         android:id="@+id/controlsLayout"
-        android:layout_width="405dp"
+        android:layout_width="match_parent"
         android:layout_height="75dp"
-        android:layout_marginBottom="68dp"
+        android:layout_marginBottom="100dp"
         android:orientation="horizontal"
         android:weightSum="5"
+        android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <!-- Botón Anterior -->
         <ImageButton
             android:id="@+id/imageButtonPrevious"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:layout_weight="1"
-            app:tint="#8024E2"
-            android:backgroundTint="#000000"
-            app:srcCompat="@android:drawable/ic_media_previous" />
+            android:backgroundTint="#121212"
+            app:srcCompat="@android:drawable/ic_media_previous"
+            app:tint="#8024E2" />
 
+        <!-- Botón Rewind -->
         <ImageButton
             android:id="@+id/imageButtonRewind"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:layout_weight="1"
-            android:backgroundTint="#000000"
-            app:tint="#8024E2"
-            app:srcCompat="@android:drawable/ic_media_rew" />
+            android:backgroundTint="#121212"
+            app:srcCompat="@android:drawable/ic_media_rew"
+            app:tint="#8024E2" />
 
+        <!-- Botón Play -->
         <ImageButton
             android:id="@+id/imageButtonPlay"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:layout_weight="1"
-            app:tint="#8024E2"
-            android:backgroundTint="#000000"
-            app:srcCompat="@android:drawable/ic_media_play" />
+            android:backgroundTint="#121212"
+            app:srcCompat="@android:drawable/ic_media_play"
+            app:tint="#8024E2" />
 
+        <!-- Botón Fast Forward -->
         <ImageButton
             android:id="@+id/imageButtonFastForward"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:layout_weight="1"
-            app:tint="#8024E2"
-            android:backgroundTint="#000000"
-            app:srcCompat="@android:drawable/ic_media_ff" />
+            android:backgroundTint="#121212"
+            app:srcCompat="@android:drawable/ic_media_ff"
+            app:tint="#8024E2" />
 
+        <!-- Botón Siguiente -->
         <ImageButton
             android:id="@+id/imageButtonNext"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:layout_weight="1"
-            app:tint="#8024E2"
-            android:backgroundTint="#000000"
-            app:srcCompat="@android:drawable/ic_media_next" />
+            android:backgroundTint="#121212"
+            app:srcCompat="@android:drawable/ic_media_next"
+            app:tint="#8024E2" />
     </LinearLayout>
 
+    <!-- Logo de Spotify (centrado en la parte superior) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="#070707"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/logo"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp"
+            android:src="@drawable/spotify_logo1"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- SeekBar para mostrar el progreso de la canción -->
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:max="100"
+        android:progress="0"
+        android:progressTint="#8024E2"
+        android:thumbTint="#8024E2"
+        android:trackTint="#424242"
+        app:layout_constraintBottom_toTopOf="@+id/controlsLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/controlsLayout"
+        app:layout_constraintVertical_bias="0.0" />
 </androidx.constraintlayout.widget.ConstraintLayout>
