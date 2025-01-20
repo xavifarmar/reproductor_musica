@@ -4,14 +4,16 @@ public class Song {
 
     private String name;
     private String path;
+    private String coverPath;  // Campo para la ruta de la portada
 
     // Constructor
-    public Song(String name, String path) {
+    public Song(String name, String path, String coverPath) {
         this.name = name;
         this.path = path;
+        this.coverPath = coverPath;
     }
 
-    // Métodos getter para obtener los valores de name y path
+    // Métodos getter para obtener los valores de name, path y coverPath
     public String getName() {
         return name;
     }
@@ -20,11 +22,13 @@ public class Song {
         return path;
     }
 
-    // Opcional: Puedes agregar un método toString() para facilitar la visualización de los objetos
-    @Override
-    public String toString() {
-        return "Song{name='" + name + "', path='" + path + "'}";
+    public String getCoverPath() {
+        return coverPath;
     }
 
-
+    // Opcional: Método toString() para facilitar la visualización de los objetos
+    @Override
+    public String toString() {
+        return "Song{name='" + name + "', path='" + path + "', coverPath='" + coverPath + "'}";
+    }
 }

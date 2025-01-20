@@ -2,5 +2,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <solid android:color="#070707"/>  <!-- Fons negre -->
     <size android:height="2dp"/>  <!-- L'amplada del límit -->
-    <stroke android:color="#8A2BE2" android:width="3dp"/> <!-- Lila i gruix del límit -->
+    <stroke android:color="#8A2BE2" android:width="1dp"/> <!-- Lila i gruix del límit -->
 </shape>

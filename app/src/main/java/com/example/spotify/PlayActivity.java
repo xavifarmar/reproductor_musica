@@ -1,143 +1,164 @@
 package com.example.spotify;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
-public class PlayActivity extends AppCompatActivity {
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
-    private static final int PICK_AUDIO_FILE = 1;  // Código para seleccionar el archivo de audio
+public class PlayActivity extends AppCompatActivity {
 
     private MediaPlayer mediaPlayer;
     private ImageButton playButton, pauseButton, stopButton;
     private SeekBar seekBar;
-    private boolean isPaused = false;
-
-    private Handler handler = new Handler();  // Handler para actualizar el SeekBar
+    private ImageView coverImageView;  // ImageView for displaying the cover image
+    private boolean isPaused = false;  // State to track if it's paused
+    private Handler handler = new Handler();  // Handler to update the SeekBar
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_play);
 
-        // Inicializar los botones
-        playButton = findViewById(R.id.imageButtonPlay);
-        //pauseButton = findViewById(R.id.imageButtonPause);
-        //stopButton = findViewById(R.id.imageButtonStop);
-        seekBar = findViewById(R.id.seekBar);  // Inicializar el SeekBar
+        // Initialize buttons and ImageView for the cover
+        playButton = findViewById(R.id.ic_play);  // Play button
+        pauseButton = findViewById(R.id.ic_pause);  // Pause button
+        seekBar = findViewById(R.id.seekBar);  // Initialize SeekBar
+        //coverImageView = findViewById(R.id.song);  // ImageView for the song cover
 
-        // Acción al presionar el botón Play
+        // Retrieve song data from the Intent
+        Intent intent = getIntent();
+        String songPath = intent.getStringExtra("song_path");
+        String songName = intent.getStringExtra("song_name");
+        String coverPath = intent.getStringExtra("cover_path");  // Get the cover path
+
+        // Set up the media player and start playing the song
+        if (songPath != null) {
+            try {
+                mediaPlayer = new MediaPlayer();
+                mediaPlayer.setDataSource(songPath);
+                mediaPlayer.prepare();  // Prepare the MediaPlayer
+                mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                    @Override
+                    public void onPrepared(MediaPlayer mp) {
+                        Toast.makeText(PlayActivity.this, "Now Playing: " + songName, Toast.LENGTH_SHORT).show();
+                        seekBar.setMax(mediaPlayer.getDuration());  // Set the SeekBar's maximum value to the song's duration
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Error loading the song", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        // Set the cover image for the song
+        if (coverPath != null && !coverPath.isEmpty()) {
+            // Load the image from the coverPath (local file)
+            loadCoverImage(coverPath);
+        } else {
+            // Set a default cover image if no coverPath is provided
+            coverImageView.setImageResource(R.drawable.default_cover);
+        }
+
+        // Play button action
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mediaPlayer != null) {
                     if (!mediaPlayer.isPlaying()) {
+                        // If the music is not playing
                         if (isPaused) {
-                            mediaPlayer.start();
+                            mediaPlayer.start();  // Resume playback
                             isPaused = false;
-                            updateSeekBar();  // Comenzamos a actualizar el SeekBar
-                            Toast.makeText(PlayActivity.this, "Reproduciendo música", Toast.LENGTH_SHORT).show();
+                            updatePlayPauseButtons();  // Update buttons
+                            updateSeekBar();  // Start updating the SeekBar
+                            Toast.makeText(PlayActivity.this, "Playing music", Toast.LENGTH_SHORT).show();
                         } else {
+                            // If it's the first time playing, start from the beginning
                             mediaPlayer.seekTo(0);
                             mediaPlayer.start();
-                            updateSeekBar();  // Comenzamos a actualizar el SeekBar
-                            Toast.makeText(PlayActivity.this, "Reproduciendo música", Toast.LENGTH_SHORT).show();
+                            updatePlayPauseButtons();  // Update buttons
+                            updateSeekBar();  // Start updating the SeekBar
+                            Toast.makeText(PlayActivity.this, "Playing music", Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
             }
         });
 
-        // Acción al presionar el botón Pause
-        /*pauseButton.setOnClickListener(new View.OnClickListener() {
+        // Pause button action
+        pauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                     mediaPlayer.pause();
                     isPaused = true;
-                    Toast.makeText(PlayActivity.this, "Música en pausa", Toast.LENGTH_SHORT).show();
+                    updatePlayPauseButtons();  // Update buttons
+                    Toast.makeText(PlayActivity.this, "Music paused", Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        // Acción al presionar el botón Stop
-        stopButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mediaPlayer != null) {
-                    mediaPlayer.stop();
-                    mediaPlayer.reset();
-                    isPaused = false;
-                    seekBar.setProgress(0);  // Resetea el SeekBar
-                    Toast.makeText(PlayActivity.this, "Música detenida", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });*/
-
-        // Iniciar la selección del archivo cuando se abre la actividad
-        selectAudioFile();
+        // Iniciar la actualización del SeekBar
+        updateSeekBar();
     }
 
-    private void selectAudioFile() {
-        // Abrir el selector de archivos para que el usuario seleccione un archivo de audio (MP3)
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.setType("audio/*");
-        intent.putExtra(Intent.EXTRA_TITLE, "Selecciona un archivo de audio");
-        startActivityForResult(intent, PICK_AUDIO_FILE);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == PICK_AUDIO_FILE && resultCode == RESULT_OK) {
-            if (data != null) {
-                Uri selectedUri = data.getData();
-
-                if (selectedUri != null) {
-                    try {
-                        mediaPlayer = new MediaPlayer();
-                        mediaPlayer.setDataSource(getApplicationContext(), selectedUri);
-                        mediaPlayer.prepare();  // Preparamos el MediaPlayer
-                        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                            @Override
-                            public void onPrepared(MediaPlayer mp) {
-                                Toast.makeText(PlayActivity.this, "Archivo listo para reproducir", Toast.LENGTH_SHORT).show();
-                                seekBar.setMax(mediaPlayer.getDuration());  // Establecer la duración total en el SeekBar
-                            }
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Toast.makeText(this, "Error al cargar el archivo", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
+    private void updatePlayPauseButtons() {
+        // Change visibility between Play and Pause buttons
+        if (isPaused) {
+            // If paused, show the Play button and hide the Pause button
+            playButton.setVisibility(View.VISIBLE);
+            pauseButton.setVisibility(View.GONE);
+        } else {
+            // If playing, show the Pause button and hide the Play button
+            playButton.setVisibility(View.GONE);
+            pauseButton.setVisibility(View.VISIBLE);
         }
     }
 
     private void updateSeekBar() {
-        // Actualizamos el SeekBar cada segundo mientras la música se reproduce
+        // Update SeekBar every second while the music is playing
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                    int currentPosition = mediaPlayer.getCurrentPosition();  // Obtiene la posición actual
-                    seekBar.setProgress(currentPosition);  // Actualiza el SeekBar
-                    handler.postDelayed(this, 1000);  // Vuelve a llamar al Runnable cada segundo
+                    int currentPosition = mediaPlayer.getCurrentPosition();  // Get the current position
+                    seekBar.setProgress(currentPosition);  // Update the SeekBar
+                    handler.postDelayed(this, 1000);  // Re-run this Runnable every second
                 }
             }
         };
-        handler.post(runnable);  // Inicia el proceso de actualización del SeekBar
+        handler.post(runnable);  // Start the SeekBar update process
+    }
+
+    private void loadCoverImage(String coverPath) {
+        // Load the cover image from the file system
+        File coverFile = new File(coverPath);
+        if (coverFile.exists()) {
+            try {
+                FileInputStream fis = new FileInputStream(coverFile);
+                Bitmap bitmap = BitmapFactory.decodeStream(fis);  // Decode the image
+                coverImageView.setImageBitmap(bitmap);  // Set the bitmap to the ImageView
+                fis.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                coverImageView.setImageResource(R.drawable.default_cover);  // Set default if error occurs
+            }
+        } else {
+            coverImageView.setImageResource(R.drawable.default_cover);  // Set default if file does not exist
+        }
     }
 
     @Override
