@@ -4,8 +4,11 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />  <!-- Utilitza aquest permís per a Android 10 i posteriors -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />  <!-- Permís per gestionar tots els fitxers, només si és necessari -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />  <!-- Afegeix aquest per a compatibilitat cap enrere -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- Per Android 9 i anteriors -->
+
 
 
 

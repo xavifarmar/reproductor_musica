@@ -69,34 +69,39 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.SongViewHold
 
         String selection = MediaStore.Audio.Media.DATA + " LIKE ?";
         String[] selectionArgs = new String[]{"%/Download/%"};
-        try:
-        Cursor cursor = contentResolver.query(uri, projection, selection, selectionArgs, null);
-        if (cursor != null) {
-            int nameColumnIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME);
-            int pathColumnIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DATA);
+        try {
+            Cursor cursor = contentResolver.query(uri, projection, selection, selectionArgs, null);
+            if (cursor != null) {
+                int nameColumnIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME);
+                int pathColumnIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DATA);
 
-            //Verificamos si las columnas existen (Debe ser mayor de 0)
-            if (nameColumnIndex >= 0 && pathColumnIndex >= 0) {
+                //Verificamos si las columnas existen (Debe ser mayor de 0)
+                if (nameColumnIndex >= 0 && pathColumnIndex >= 0) {
 
-                if (cursor.moveToFirst()) {
-                    do {
-                        String name = cursor.getString(nameColumnIndex);
-                        String path = cursor.getString(pathColumnIndex);
+                    if (cursor.moveToFirst()) {
+                        do {
+                            String name = cursor.getString(nameColumnIndex);
+                            String path = cursor.getString(pathColumnIndex);
 
-                        // Solo añadimos canciones que están en la carpeta /Download/
-                        if (path != null && path.contains("/Download/")) {
-                            songs.add(new Song(name, path));
-                        }
-                    } while (cursor.moveToNext());
+                            // Solo añadimos canciones que están en la carpeta /Download/
+                            if (path != null && path.contains("/Download/")) {
+                                songs.add(new Song(name, path));
+                            }
+                        } while (cursor.moveToNext());
+                    }
+                    cursor.close();  // Cerrar el cursor
+                } else {
+                    // Si alguna columna no existe, mostramos un mensaje de error
+                    Log.e("SongsAdapter", "Columnas de datos no encontradas.");
+                    Toast.makeText(context, "Error al obtener las canciones", Toast.LENGTH_SHORT).show();
                 }
-                cursor.close();  // Cerrar el cursor
             } else {
-                // Si alguna columna no existe, mostramos un mensaje de error
-                Log.e("SongsAdapter", "Columnas de datos no encontradas.");
-                Toast.makeText(context, "Error al obtener las canciones", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "No se encontraron canciones en Downloads", Toast.LENGTH_SHORT).show();
             }
-        } else {
-            Toast.makeText(context, "No se encontraron canciones en Downloads", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            // Capturamos cualquier excepción y mostramos el error
+            Log.e("SongsAdapter", "Error al consultar la base de datos", e);
+            Toast.makeText(context, "Ocurrió un error al obtener las canciones", Toast.LENGTH_SHORT).show();
         }
         notifyDataSetChanged();  // Notificar que los datos han cambiado
     }
