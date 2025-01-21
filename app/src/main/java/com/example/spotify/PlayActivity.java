@@ -6,45 +6,82 @@ import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlayActivity extends AppCompatActivity {
 
     private MediaPlayer mediaPlayer;
-    private ImageButton playButton, pauseButton, stopButton;
+    private ImageButton playButton, pauseButton, houseButton, forwardButton, rewindButton,
+            nextButton, backButton;
     private SeekBar seekBar;
     private ImageView coverImageView;  // ImageView for displaying the cover image
     private boolean isPaused = false;  // State to track if it's paused
     private Handler handler = new Handler();  // Handler to update the SeekBar
+    private TextView title_song;
+    private static final int SEEK_INCREMENT = 10000;  // 10 seconds in milliseconds
+    private List<Song> songList = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_play);
 
         // Initialize buttons and ImageView for the cover
         playButton = findViewById(R.id.ic_play);  // Play button
         pauseButton = findViewById(R.id.ic_pause);  // Pause button
         seekBar = findViewById(R.id.seekBar);  // Initialize SeekBar
-        //coverImageView = findViewById(R.id.song);  // ImageView for the song cover
+        coverImageView = findViewById(R.id.coverImageView);  // ImageView for the song cover
+        houseButton = findViewById(R.id.house_btn);
+        title_song = findViewById(R.id.title_song);  // Initialize title_song TextView
+        forwardButton = findViewById(R.id.forwardButton);
+        rewindButton = findViewById(R.id.rewindButton);
+
+        if (coverImageView != null) {  // Verificar que el ImageView no sea null
+            coverImageView.setImageResource(R.drawable.default_cover);  // Establecer la imagen predeterminada
+        } else {
+            Log.e("PlayActivity", "ImageView is null");
+        }
 
         // Retrieve song data from the Intent
         Intent intent = getIntent();
         String songPath = intent.getStringExtra("song_path");
         String songName = intent.getStringExtra("song_name");
-        String coverPath = intent.getStringExtra("cover_path");  // Get the cover path
 
-        // Set up the media player and start playing the song
+        if (songName != null) {
+            title_song.setText(songName);  // Set song name to title
+        }
+
+        String coverFilePath = getIntent().getStringExtra("cover_path");
+        Log.d("PlayActivity", "Cover file path: " + coverFilePath);
+        if (coverFilePath != null) {
+            Bitmap bitmap = BitmapFactory.decodeFile(coverFilePath);  // Decodificar el archivo desde la ruta
+            if (bitmap != null) {
+                coverImageView.setImageBitmap(bitmap);  // Mostrar la imagen en el ImageView
+            } else {
+                Log.e("PlayActivity", "Failed to decode image from path");
+                coverImageView.setImageResource(R.drawable.default_cover);  // Establecer imagen por defecto si falla
+            }
+        }
+
+
+        // Iniciar la reproducción si el path de la canción no es null
         if (songPath != null) {
             try {
                 mediaPlayer = new MediaPlayer();
@@ -57,19 +94,10 @@ public class PlayActivity extends AppCompatActivity {
                         seekBar.setMax(mediaPlayer.getDuration());  // Set the SeekBar's maximum value to the song's duration
                     }
                 });
-            } catch (Exception e) {
+            } catch (IOException e) {
                 e.printStackTrace();
                 Toast.makeText(this, "Error loading the song", Toast.LENGTH_SHORT).show();
             }
-        }
-
-        // Set the cover image for the song
-        if (coverPath != null && !coverPath.isEmpty()) {
-            // Load the image from the coverPath (local file)
-            loadCoverImage(coverPath);
-        } else {
-            // Set a default cover image if no coverPath is provided
-            coverImageView.setImageResource(R.drawable.default_cover);
         }
 
         // Play button action
@@ -111,6 +139,26 @@ public class PlayActivity extends AppCompatActivity {
             }
         });
 
+        houseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(PlayActivity.this, SongsActivity.class);
+                startActivity(intent);
+            }
+        });
+        rewindButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                rewind10Seconds();
+            }
+        });
+
+        forwardButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                forward10Seconds();
+            }
+        });
         // Iniciar la actualización del SeekBar
         updateSeekBar();
     }
@@ -118,11 +166,9 @@ public class PlayActivity extends AppCompatActivity {
     private void updatePlayPauseButtons() {
         // Change visibility between Play and Pause buttons
         if (isPaused) {
-            // If paused, show the Play button and hide the Pause button
             playButton.setVisibility(View.VISIBLE);
             pauseButton.setVisibility(View.GONE);
         } else {
-            // If playing, show the Pause button and hide the Play button
             playButton.setVisibility(View.GONE);
             pauseButton.setVisibility(View.VISIBLE);
         }
@@ -142,30 +188,38 @@ public class PlayActivity extends AppCompatActivity {
         };
         handler.post(runnable);  // Start the SeekBar update process
     }
-
-    private void loadCoverImage(String coverPath) {
-        // Load the cover image from the file system
-        File coverFile = new File(coverPath);
-        if (coverFile.exists()) {
-            try {
-                FileInputStream fis = new FileInputStream(coverFile);
-                Bitmap bitmap = BitmapFactory.decodeStream(fis);  // Decode the image
-                coverImageView.setImageBitmap(bitmap);  // Set the bitmap to the ImageView
-                fis.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-                coverImageView.setImageResource(R.drawable.default_cover);  // Set default if error occurs
-            }
-        } else {
-            coverImageView.setImageResource(R.drawable.default_cover);  // Set default if file does not exist
+    private void rewind10Seconds() {
+        if (mediaPlayer != null) {
+            int currentPosition = mediaPlayer.getCurrentPosition();
+            int newPosition = Math.max(currentPosition - SEEK_INCREMENT, 0); // Prevent seeking before 0 ms
+            mediaPlayer.seekTo(newPosition);
+            seekBar.setProgress(newPosition);
+            Toast.makeText(this, "Rewind 10 seconds", Toast.LENGTH_SHORT).show();
         }
     }
 
+    private void forward10Seconds() {
+        if (mediaPlayer != null) {
+            int currentPosition = mediaPlayer.getCurrentPosition();
+            int newPosition = Math.min(currentPosition + SEEK_INCREMENT, mediaPlayer.getDuration()); // Prevent seeking beyond the song
+            mediaPlayer.seekTo(newPosition);
+            seekBar.setProgress(newPosition);
+            Toast.makeText(this, "Forward 10 seconds", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void nextSong(){
+
+    }
+
+    private void previousSong(){
+
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (mediaPlayer != null) {
-            mediaPlayer.release();
+            mediaPlayer.release();  // Release mediaPlayer resources when activity is destroyed
         }
     }
 }

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-
-</selector>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#CCCCCC"/> <!-- Color gris claro -->
+    <size android:width="100dp" android:height="100dp"/> <!-- Tamaño de la portada -->
+    <corners android:radius="10dp"/> <!-- Bordes redondeados -->
+</shape>

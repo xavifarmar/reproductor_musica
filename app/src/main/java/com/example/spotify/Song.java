@@ -1,19 +1,20 @@
 package com.example.spotify;
 
-public class Song {
+import android.graphics.Bitmap;
 
+public class Song {
     private String name;
     private String path;
-    private String coverPath;  // Campo para la ruta de la portada
+    private Bitmap coverBitmap;
 
-    // Constructor
-    public Song(String name, String path, String coverPath) {
+    // Constructor actualizado para aceptar Bitmap para la portada
+    public Song(String name, String path, Bitmap coverBitmap) {
         this.name = name;
         this.path = path;
-        this.coverPath = coverPath;
+        this.coverBitmap = coverBitmap;
     }
 
-    // Métodos getter para obtener los valores de name, path y coverPath
+    // Getters
     public String getName() {
         return name;
     }
@@ -22,13 +23,7 @@ public class Song {
         return path;
     }
 
-    public String getCoverPath() {
-        return coverPath;
-    }
-
-    // Opcional: Método toString() para facilitar la visualización de los objetos
-    @Override
-    public String toString() {
-        return "Song{name='" + name + "', path='" + path + "', coverPath='" + coverPath + "'}";
+    public Bitmap getCoverBitmap() {
+        return coverBitmap;
     }
 }

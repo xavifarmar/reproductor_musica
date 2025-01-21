@@ -26,7 +26,7 @@
 
         <!-- Botón Anterior -->
         <ImageButton
-            android:id="@+id/imageButtonPrevious"
+            android:id="@+id/backButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -37,7 +37,7 @@
 
         <!-- Botón Rewind -->
         <ImageButton
-            android:id="@+id/imageButtonRewind"
+            android:id="@+id/rewindButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -72,7 +72,7 @@
 
         <!-- Botón Fast Forward -->
         <ImageButton
-            android:id="@+id/imageButtonFastForward"
+            android:id="@+id/forwardButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -83,7 +83,7 @@
 
         <!-- Botón Siguiente -->
         <ImageButton
-            android:id="@+id/imageButtonNext"
+            android:id="@+id/nextButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -119,39 +119,82 @@
 
     <SeekBar
         android:id="@+id/seekBar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="369dp"
+        android:layout_height="25dp"
+        android:layout_marginTop="8dp"
         android:max="100"
         android:progress="0"
         android:progressTint="#8024E2"
         android:thumbTint="#8024E2"
         android:trackTint="#424242"
-        app:layout_constraintBottom_toTopOf="@+id/controlsLayout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/controlsLayout"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@id/controlsLayout" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/nav_button"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:background="#121212"
+        android:layout_width="409dp"
+        android:layout_height="63dp"
+        android:background="#070707"
+        android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        android:gravity="center">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.998">
 
         <ImageButton
             android:id="@+id/house_btn"
-            android:layout_width="69dp"
-            android:layout_height="81dp"
-            android:backgroundTint="#121212"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="100dp"
+            android:backgroundTint="#070707"
+            android:contentDescription="Go to home"
+            android:src="@drawable/house_solid"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/house_solid" />
+            tools:layout_editor_absoluteY="-1dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+
+            />
+
+        <ImageButton
+            android:id="@+id/music_btn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="92dp"
+            android:backgroundTint="#070707"
+            android:contentDescription="Go to music"
+            android:src="@drawable/music_solid"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/title_song"
+        android:layout_width="350dp"
+        android:layout_height="36dp"
+        android:layout_marginBottom="24dp"
+        android:text="Cancion"
+        app:layout_constraintBottom_toTopOf="@+id/controlsLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.491"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/white"
+        android:textAlignment="textStart"
+        android:paddingLeft="30dp"
+        android:textSize="16dp"/>
+
+    <ImageView
+        android:id="@+id/coverImageView"
+        android:layout_width="324dp"
+        android:layout_height="336dp"
+        android:layout_marginBottom="24dp"
+        app:layout_constraintBottom_toTopOf="@+id/title_song"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/default_cover" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

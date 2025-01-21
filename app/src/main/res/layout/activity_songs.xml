@@ -29,38 +29,62 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- RecyclerView -->
+
+    <!-- Botón de navegación -->
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
-        android:layout_width="406dp"
-        android:layout_height="580dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toTopOf="@+id/nav_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/constraintLayout"
-        app:layout_constraintVertical_bias="0.082" />
+        app:layout_constraintVertical_bias="0.0"
+        android:layout_marginBottom="8dp"/>
 
-    <!-- Botón de navegación -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/nav_button"
-        android:layout_width="411dp"
-        android:layout_height="70dp"
-        android:background="#121212"
-        android:gravity="center"
+        android:layout_width="409dp"
+        android:layout_height="63dp"
+        android:background="#070707"
+        android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.998">
+
+        <ImageButton
+            android:id="@+id/house_btn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="100dp"
+            android:backgroundTint="#070707"
+            android:contentDescription="Go to home"
+            android:src="@drawable/house_solid"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:layout_editor_absoluteY="-1dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+
+            />
 
         <ImageButton
             android:id="@+id/music_btn"
-            android:layout_width="99dp"
-            android:layout_height="57dp"
-            android:background="#121212"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="92dp"
+            android:backgroundTint="#070707"
+            android:contentDescription="Go to music"
+            android:src="@drawable/music_solid"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/music_solid" />
+            app:layout_constraintEnd_toEndOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

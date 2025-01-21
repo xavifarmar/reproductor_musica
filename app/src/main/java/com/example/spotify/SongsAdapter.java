@@ -1,10 +1,12 @@
 package com.example.spotify;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -21,7 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.spotify.R;
 import com.example.spotify.Song;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,15 +67,12 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.SongViewHold
         holder.songName.setText(song.getName());  // Asignamos el nombre de la canción al TextView
 
         // Obtener la portada de la canción
-        loadCoverImage(holder.coverImageView, song.getCoverPath());
+        loadCoverImage(holder.coverImageView, song.getCoverBitmap());
 
         // Manejo del clic en el ítem
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (onItemClickListener != null) {
-                    onItemClickListener.onItemClick(song);  // Llamamos al listener
-                }
+        holder.itemView.setOnClickListener(v -> {
+            if (onItemClickListener != null) {
+                onItemClickListener.onItemClick(song);  // Llamamos al listener
             }
         });
     }
@@ -85,6 +84,7 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.SongViewHold
 
     // Método para obtener las canciones de la carpeta "Downloads"
     private void obtenerCanciones() {
+        Log.d("SongsAdapter", "Iniciando la consulta para obtener canciones...");
         ContentResolver contentResolver = context.getContentResolver();
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 
@@ -94,80 +94,148 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.SongViewHold
                 MediaStore.Audio.Media.ALBUM_ID       // ID del álbum para la portada
         };
 
-        String selection = MediaStore.Audio.Media.DATA + " LIKE ?";
+        // Filtra para obtener solo archivos dentro de la carpeta "Download"
+        String selection = MediaStore.Audio.Media.DATA + " LIKE ?";  // Filtramos por la carpeta "Download"
         String[] selectionArgs = new String[]{"%/Download/%"};
 
         try {
+            Log.d("SongsAdapter", "Ejecutando consulta a MediaStore...");
             Cursor cursor = contentResolver.query(uri, projection, selection, selectionArgs, null);
             if (cursor != null) {
+                Log.d("SongsAdapter", "Consulta exitosa, procesando resultados...");
                 int nameColumnIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME);
                 int pathColumnIndex = cursor.getColumnIndex(MediaStore.Audio.Media.DATA);
                 int albumIdColumnIndex = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
 
-                // Verificamos si las columnas existen
+                // Verificar si los índices de las columnas son válidos (mayores o iguales a 0)
                 if (nameColumnIndex >= 0 && pathColumnIndex >= 0 && albumIdColumnIndex >= 0) {
-                    if (cursor.moveToFirst()) {
-                        do {
-                            String name = cursor.getString(nameColumnIndex);
-                            String path = cursor.getString(pathColumnIndex);
-                            long albumId = cursor.getLong(albumIdColumnIndex);
+                    int count = 0;  // Contador para verificar el número de canciones cargadas
+                    while (cursor.moveToNext()) {
+                        String name = cursor.getString(nameColumnIndex);
+                        String path = cursor.getString(pathColumnIndex);
+                        long albumId = cursor.getLong(albumIdColumnIndex);
+                        Log.d("SongsAdapter", "AlbumId: " + albumId);
 
-                            // Obtener la ruta de la portada usando el ID del álbum
-                            String coverPath = getAlbumCoverPath(albumId);
+                        // Log para verificar las rutas encontradas
+                        Log.d("SongPath", "Nombre: " + name + ", Ruta: " + path + ", AlbumId: " + albumId);
 
-                            // Solo añadimos canciones que están en la carpeta /Download/
-                            if (path != null && path.contains("/Download/")) {
-                                songs.add(new Song(name, path, coverPath));  // Crear el objeto Song con coverPath
-                            }
-                        } while (cursor.moveToNext());
+                        // Verificamos si el path no es null antes de añadir la canción
+                        if (path != null) {
+                            Bitmap coverBitmap = getAlbumCoverBitmap(albumId); // Obtenemos el Bitmap de la portada
+                            songs.add(new Song(name, path, coverBitmap));  // Agregar la canción
+                            count++;  // Incrementamos el contador para verificar
+                        }
                     }
-                    cursor.close();  // Cerrar el cursor
+
+                    // Verificar cuántas canciones se cargaron
+                    Log.d("SongPath", "Total de canciones cargadas: " + count);
                 } else {
-                    Log.e("SongsAdapter", "Columnas de datos no encontradas.");
-                    Toast.makeText(context, "Error al obtener las canciones", Toast.LENGTH_SHORT).show();
+                    Log.e("SongsAdapter", "Las columnas no son válidas, la consulta no contiene los datos esperados.");
                 }
+                cursor.close();  // Cerrar el cursor después de usarlo
             } else {
-                Toast.makeText(context, "No se encontraron canciones en Downloads", Toast.LENGTH_SHORT).show();
+                Log.e("SongsAdapter", "No se encontró ningún cursor o canciones.");
+                Toast.makeText(context, "No se encontraron canciones", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             Log.e("SongsAdapter", "Error al consultar la base de datos", e);
             Toast.makeText(context, "Ocurrió un error al obtener las canciones", Toast.LENGTH_SHORT).show();
         }
-        notifyDataSetChanged();  // Notificar que los datos han cambiado
+
+        // Asegurarse de que notifyDataSetChanged() se llama para actualizar la interfaz de usuario
+        Log.d("SongsAdapter", "Notificando cambios en el adaptador...");
+        notifyDataSetChanged();
     }
 
-    // Método para obtener la ruta de la portada del álbum a partir del albumId
-    private String getAlbumCoverPath(long albumId) {
-        Uri albumUri = Uri.parse("content://media/external/audio/albumart");
-        Uri coverUri = Uri.withAppendedPath(albumUri, String.valueOf(albumId));
+    // Método corregido para cargar la portada desde un Bitmap
+    private void loadCoverImage(ImageView imageView, Bitmap coverBitmap) {
+        Log.d("SongsAdapter", "Intentando cargar la portada de la canción...");
 
-        try {
-            // Intentar obtener la ruta de la portada
-            File imgFile = new File(coverUri.getPath());
-            if (imgFile.exists()) {
-                return coverUri.toString();  // O cualquier lógica para obtener la ruta
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Si no se encuentra la portada, retornamos la ruta de una imagen predeterminada
-        return "android.resource://com.example.spotify/" + R.drawable.default_cover;
-    }
-
-    // Método para cargar la portada de la canción
-    private void loadCoverImage(ImageView imageView, String coverPath) {
-        if (coverPath != null) {
-            // Si la portada tiene una ruta, la cargamos
-            File imgFile = new File(coverPath);
-            if (imgFile.exists()) {
-                Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                imageView.setImageBitmap(bitmap);
-            }
+        if (coverBitmap != null) {
+            // Si el Bitmap es válido, lo mostramos en el ImageView
+            imageView.setImageBitmap(coverBitmap);
+            Log.d("SongsAdapter", "Portada cargada correctamente.");
         } else {
-            // Imagen por defecto
+            // Si no se puede obtener el Bitmap, mostramos la imagen predeterminada
             imageView.setImageResource(R.drawable.default_cover);
+            Log.d("SongsAdapter", "Portada no encontrada, usando imagen predeterminada.");
         }
+    }
+
+    // Método corregido para obtener la portada del álbum
+    private Bitmap getAlbumCoverBitmap(long albumId) {
+        Bitmap coverBitmap = null;
+        // Formamos la URI del álbum usando el albumId
+        Uri albumUri = ContentUris.withAppendedId(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumId);
+
+        // Consultamos la URI para obtener la ruta de la portada del álbum
+        Cursor cursor = context.getContentResolver().query(
+                albumUri,
+                new String[]{MediaStore.Audio.Albums.ALBUM_ART},
+                null,
+                null,
+                null
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            String albumArtPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+            cursor.close();
+
+            if (albumArtPath != null && !albumArtPath.isEmpty()) {
+                // Si la ruta de la portada es válida, la decodificamos en un Bitmap
+                coverBitmap = BitmapFactory.decodeFile(albumArtPath);
+            }
+        }
+
+        // Si no encontramos la portada en la URI del álbum, intentamos obtenerla de los metadatos
+        if (coverBitmap == null) {
+            coverBitmap = getSongCoverArt(albumId); // Intentamos obtenerla desde los metadatos
+        }
+
+        // Si no encontramos ninguna portada, devolvemos una imagen predeterminada
+        if (coverBitmap == null) {
+            coverBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.default_cover);
+        }
+
+        return coverBitmap;
+    }
+
+    // Método para obtener la portada de la canción desde los metadatos
+    private Bitmap getSongCoverArt(long albumId) {
+        Bitmap coverBitmap = null;
+        try {
+            MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+            String songPath = getSongPathByAlbumId(albumId);  // Obtén la ruta de la canción
+
+            if (songPath != null) {
+                retriever.setDataSource(songPath);
+                byte[] art = retriever.getEmbeddedPicture();
+
+                if (art != null) {
+                    coverBitmap = BitmapFactory.decodeByteArray(art, 0, art.length);
+                }
+            }
+
+        } catch (Exception e) {
+            Log.e("SongsAdapter", "Error al obtener la portada de los metadatos", e);
+        }
+        return coverBitmap;
+    }
+
+    // Método para obtener la ruta de la canción por su ID de álbum
+    private String getSongPathByAlbumId(long albumId) {
+        String path = null;
+        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Audio.Media.ALBUM_ID + " = ?";
+        String[] selectionArgs = new String[]{String.valueOf(albumId)};
+
+        Cursor cursor = context.getContentResolver().query(uri, new String[]{MediaStore.Audio.Media.DATA}, selection, selectionArgs, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+            cursor.close();
+        }
+        return path;
     }
 
     // Interfaz para manejar los clics en las canciones
