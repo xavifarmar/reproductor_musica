@@ -59,6 +59,29 @@ public class PlayActivity extends AppCompatActivity {
             Log.e("PlayActivity", "ImageView is null");
         }
 
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // Solo actualiza la posición de reproducción si el usuario está moviendo la SeekBar
+                if (fromUser) {
+                    mediaPlayer.seekTo(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // Detener la actualización automática del SeekBar mientras el usuario lo mueve
+                handler.removeCallbacksAndMessages(null);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // Reiniciar la actualización automática del SeekBar después de que el usuario haya dejado de moverla
+                updateSeekBar();
+            }
+        });
+
+
         // Retrieve song data from the Intent
         Intent intent = getIntent();
         String songPath = intent.getStringExtra("song_path");
@@ -215,6 +238,7 @@ public class PlayActivity extends AppCompatActivity {
     private void previousSong(){
 
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
